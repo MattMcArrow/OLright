@@ -1,29 +1,15 @@
 package com.example.olright
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.olright.ui.theme.OLrightTheme
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
-import io.github.jan.supabase.postgrest.from
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -33,7 +19,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModelProvider
-
+import android.preference.PreferenceManager
+import org.osmdroid.config.Configuration.*
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
 
 @Serializable
 data class Geometrie(
@@ -61,25 +51,52 @@ val supabase = createSupabaseClient(
 
 class MainActivity : ComponentActivity() {
     private lateinit var viewModel: CrisisViewModel
-
+    private val REQUEST_PERMISSIONS_REQUEST_CODE = 1
+    private lateinit var map : MapView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this))
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.INTERNET), 0)
         }
         viewModel = ViewModelProvider(this).get(CrisisViewModel::class.java)
-        setContent {
-            OLrightTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    ListDb(viewModel)
-                }
-            }
+        setContentView(R.layout.activity_main)
+
+        map = findViewById<MapView>(R.id.map)
+        map.setTileSource(TileSourceFactory.MAPNIK)
+
+        val mapController = map.controller
+        mapController.setZoom(13)
+        val startPoint = GeoPoint(49.5948, 17.241);
+        mapController.setCenter(startPoint);
+        //ListDb(viewModel)
+        viewModel.fetchCrisises()
+    }
+    override fun onResume() {
+        super.onResume()
+        map.onResume() //needed for compass, my location overlays, v6.0.0 and up
+    }
+
+    override fun onPause() {
+        super.onPause()
+        map.onPause()  //needed for compass, my location overlays, v6.0.0 and up
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        val permissionsToRequest = ArrayList<String>()
+        var i = 0
+        while (i < grantResults.size) {
+            permissionsToRequest.add(permissions[i])
+            i++
         }
-        viewModel.fetchCrisises() // Initial
+        if (permissionsToRequest.size > 0) {
+            ActivityCompat.requestPermissions(
+                this,
+                permissionsToRequest.toTypedArray(),
+                REQUEST_PERMISSIONS_REQUEST_CODE
+            )
+        }
     }
 }
 
@@ -113,34 +130,3 @@ fun ListDb(viewModel: CrisisViewModel) {
     }
 }
 
-
-
-
-
-
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//fun GreetingPreview() {
-//    OLrightTheme {
-//        Surface(
-//            modifier = Modifier.fillMaxSize(),
-//            color = MaterialTheme.colorScheme.background
-//        ) {
-//            ListDb()
-//        }
-//    }
-//}
-
-
-//@Composable
-//fun ListDbPreview() {
-//    val sampleCrisisList = listOf(
-//        Crisis(1, "Sample Crisis 1", "Description 1", "2024-01-01T00:00:00Z", "2024-01-02T00:00:00Z", Geometrie("", listOf(4.6878))),
-//        Crisis(2, "Sample Crisis 2", "Description 2", "2024-02-01T00:00:00Z", "2024-02-02T00:00:00Z", Geometrie("", listOf(4.6878)))
-//    )
-//    LazyColumn {
-//        items(sampleCrisisList) { crisis ->
-//            ListItem(headlineContent = { Text(text = crisis.crisis) })
-//        }
-//    }
-//}
