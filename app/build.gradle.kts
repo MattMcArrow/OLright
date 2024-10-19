@@ -49,6 +49,10 @@ dependencies {
     implementation("io.ktor:ktor-client-android:3.0.0")
     implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation("org.locationtech.jts:jts-core:1.18.0")
+    implementation("org.osmdroid:osmdroid-android:6.0.0")
+    implementation("org.mapsforge:mapsforge-map-android:0.14.0")
+    implementation("org.mapsforge:mapsforge-map:0.14.0")
+    implementation("io.github.jan-tennert.supabase:realtime-kt")
 
 
 
