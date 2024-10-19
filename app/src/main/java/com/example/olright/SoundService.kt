@@ -17,7 +17,7 @@ class SoundService : Service() {
 
         // Start playing your sound
         mediaPlayer = MediaPlayer.create(this, R.raw.loudsound) // Ensure you have a sound file in res/raw
-        mediaPlayer.isLooping = true // Set to true if you want it to loop
+        mediaPlayer.isLooping = false // Set to true if you want it to loop
         mediaPlayer.start()
 
     }

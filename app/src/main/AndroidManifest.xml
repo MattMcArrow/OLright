@@ -26,10 +26,6 @@
         android:theme="@style/Theme.OLright"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
-        <service
-            android:name=".SoundService"
-            android:exported="false"
-            android:foregroundServiceType="mediaPlayback" />
 
         <activity
             android:name=".MainActivity"
