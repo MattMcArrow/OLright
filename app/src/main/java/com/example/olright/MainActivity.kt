@@ -1,9 +1,13 @@
 package com.example.olright
 
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.Manifest
 import android.preference.PreferenceManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.*
 import org.osmdroid.config.Configuration.*
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -15,6 +19,7 @@ import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 class MainActivity : AppCompatActivity() {
     private val REQUEST_PERMISSIONS_REQUEST_CODE = 1
     private lateinit var map : MapView
+    private lateinit var locationOverlay: MyLocationNewOverlay
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -36,12 +41,37 @@ class MainActivity : AppCompatActivity() {
         map = findViewById<MapView>(R.id.map)
         map.setTileSource(TileSourceFactory.MAPNIK)
 
+        if (checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
+        } else {
+            enableMyLocation()
+        }
+
         val mapController = map.controller
         mapController.setZoom(13)
         val startPoint = GeoPoint(49.5948, 17.241);
         mapController.setCenter(startPoint);
 
 
+    }
+
+    private fun enableMyLocation() {
+        val locationProvider = GpsMyLocationProvider(this)
+        locationOverlay = MyLocationNewOverlay(locationProvider, map)
+        locationOverlay.enableMyLocation() // Starts tracking user’s location
+
+        // Optionally, move the map to the current location when the location is found
+        locationOverlay.runOnFirstFix {
+            runOnUiThread {
+                val myLocation = locationOverlay.myLocation
+                if (myLocation != null) {
+                    map.controller.setCenter(myLocation)
+                    map.controller.setZoom(18.0)  // Zoom in to user's location
+                }
+            }
+        }
+        map.overlays.add(locationOverlay)  // Add the overlay to the map
     }
 
     override fun onResume() {
@@ -51,6 +81,9 @@ class MainActivity : AppCompatActivity() {
         //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         //Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
         map.onResume() //needed for compass, my location overlays, v6.0.0 and up
+        if (::locationOverlay.isInitialized) {
+            locationOverlay.enableMyLocation()
+        }
     }
 
     override fun onPause() {
@@ -60,6 +93,9 @@ class MainActivity : AppCompatActivity() {
         //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         //Configuration.getInstance().save(this, prefs);
         map.onPause()  //needed for compass, my location overlays, v6.0.0 and up
+        if (::locationOverlay.isInitialized) {
+            locationOverlay.disableMyLocation()
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
