@@ -8,6 +8,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.*
+import androidx.activity.ComponentActivity
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.postgrest.Postgrest
+import kotlinx.serialization.Serializable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.ViewModelProvider
 import org.osmdroid.config.Configuration.*
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -15,27 +29,42 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 
+@Serializable
+data class Geometrie(
+    val type: String,
+    val coordinates: List<List<List<Double>>>
+)
 
-class MainActivity : AppCompatActivity() {
+@Serializable
+data class Crisis(
+    val id: Int,
+    val crisis: String,
+    val description: String,
+    val time_start: String,
+    val time_end: String,
+    val geom: Geometrie
+)
+
+
+val supabase = createSupabaseClient(
+    supabaseUrl = "https://iguijgpwqewgbywehkjc.supabase.co",
+    supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlndWlqZ3B3cWV3Z2J5d2Voa2pjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkyNzU2NTcsImV4cCI6MjA0NDg1MTY1N30.tlr9SPZaqrsfVJ_eUXPi0IACfqmGBhqA7caj8nSojTQ"
+) {
+    install(Postgrest)
+}
+
+class MainActivity : ComponentActivity() {
+    private lateinit var viewModel: CrisisViewModel
     private val REQUEST_PERMISSIONS_REQUEST_CODE = 1
     private lateinit var map : MapView
     private lateinit var locationOverlay: MyLocationNewOverlay
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        //handle permissions first, before map is created. not depicted here
-
-        //load/initialize the osmdroid configuration, this can be done
-        // This won't work unless you have imported this: org.osmdroid.config.Configuration.*
         getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this))
-        //setting this before the layout is inflated is a good idea
-        //it 'should' ensure that the map has a writable location for the map cache, even without permissions
-        //if no tiles are displayed, you can try overriding the cache path using Configuration.getInstance().setCachePath
-        //see also StorageUtils
-        //note, the load method also sets the HTTP User Agent to your application's package name, if you abuse osm's
-        //tile servers will get you banned based on this string.
-
-        //inflate and create the map
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.INTERNET), 0)
+        }
+        viewModel = ViewModelProvider(this).get(CrisisViewModel::class.java)
         setContentView(R.layout.activity_main)
 
         map = findViewById<MapView>(R.id.map)
@@ -52,8 +81,8 @@ class MainActivity : AppCompatActivity() {
         mapController.setZoom(13)
         val startPoint = GeoPoint(49.5948, 17.241);
         mapController.setCenter(startPoint);
-
-
+        //ListDb(viewModel)
+        viewModel.fetchCrisises()
     }
 
     private fun enableMyLocation() {
@@ -76,10 +105,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        //this will refresh the osmdroid configuration on resuming.
-        //if you make changes to the configuration, use
-        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        //Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
         map.onResume() //needed for compass, my location overlays, v6.0.0 and up
         if (::locationOverlay.isInitialized) {
             locationOverlay.enableMyLocation()
@@ -88,10 +113,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        //this will refresh the osmdroid configuration on resuming.
-        //if you make changes to the configuration, use
-        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        //Configuration.getInstance().save(this, prefs);
         map.onPause()  //needed for compass, my location overlays, v6.0.0 and up
         if (::locationOverlay.isInitialized) {
             locationOverlay.disableMyLocation()
@@ -110,25 +131,39 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(
                 this,
                 permissionsToRequest.toTypedArray(),
-                REQUEST_PERMISSIONS_REQUEST_CODE)
+                REQUEST_PERMISSIONS_REQUEST_CODE
+            )
         }
     }
-
-
-    /*private fun requestPermissionsIfNecessary(String[] permissions) {
-        val permissionsToRequest = ArrayList<String>();
-        permissions.forEach { permission ->
-        if (ContextCompat.checkSelfPermission(this, permission)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            permissionsToRequest.add(permission);
-        }
-    }
-        if (permissionsToRequest.size() > 0) {
-            ActivityCompat.requestPermissions(
-                    this,
-                    permissionsToRequest.toArray(new String[0]),
-                    REQUEST_PERMISSIONS_REQUEST_CODE);
-        }
-    }*/
 }
+
+
+
+
+@Composable
+fun ListDb(viewModel: CrisisViewModel) {
+    // Collect the crisis data from ViewModel as state
+    val crisises by viewModel.crisises.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchCrisises()
+    }
+
+    LazyColumn {
+        items(crisises) { crisis ->
+            ListItem(
+                headlineContent = { Text(text = crisis.crisis) },
+                supportingContent = {
+                    Column {
+                        Text(text = "ID: ${crisis.id}")
+                        Text(text = "Description: ${crisis.description}")
+                        Text(text = "Start Time: ${crisis.time_start}")
+                        Text(text = "End Time: ${crisis.time_end}")
+                        Text(text = "Geometry: ${crisis.geom}")
+                    }
+                }
+            )
+        }
+    }
+}
+
