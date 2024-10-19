@@ -1,10 +1,6 @@
 package com.example.olright
 
-import SoundService
-import android.Manifest
-import android.content.pm.PackageManager
-import android.media.MediaPlayer
-import android.preference.PreferenceManager
+import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
@@ -22,26 +18,19 @@ import androidx.lifecycle.ViewModelProvider
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import kotlinx.serialization.Serializable
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.ViewModelProvider
+import android.preference.PreferenceManager
 import org.osmdroid.config.Configuration.*
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
-import org.locationtech.jts.geom.GeometryFactory
-import org.locationtech.jts.geom.Polygon
-import org.locationtech.jts.geom.Coordinate
-import org.locationtech.jts.operation.overlay.OverlayOp
-import android.content.Intent
-import android.os.Bundle
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-
 
 @Serializable
 data class Geometrie(
@@ -122,8 +111,7 @@ class MainActivity : ComponentActivity() {
 class MainActivity : ComponentActivity() {
     private lateinit var viewModel: CrisisViewModel
     private val REQUEST_PERMISSIONS_REQUEST_CODE = 1
-    private var mediaPlayer: MediaPlayer? = null
-
+    private lateinit var map : MapView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this))
@@ -131,13 +119,21 @@ class MainActivity : ComponentActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.INTERNET), 0)
         }
 
-        setContent {
-            ListDb(viewModel)
-        }
+        val mapController = map.controller
+        mapController.setZoom(13)
+        val startPoint = GeoPoint(49.5948, 17.241);
+        mapController.setCenter(startPoint);
+        //ListDb(viewModel)
+        viewModel.fetchCrisises()
+    }
+    override fun onResume() {
+        super.onResume()
+        map.onResume() //needed for compass, my location overlays, v6.0.0 and up
+    }
 
-    fun startSoundService() {
-        val intent = Intent(this, SoundService::class.java)
-        startForegroundService(intent)
+    override fun onPause() {
+        super.onPause()
+        map.onPause()  //needed for compass, my location overlays, v6.0.0 and up
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
