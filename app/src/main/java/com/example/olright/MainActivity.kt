@@ -21,6 +21,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.preference.PreferenceManager
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration.*
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -56,8 +58,9 @@ data class Geometrie(
 )
 
 @Serializable
-data class PointGeometrie(
-    val coordinates: List<Double>
+data class PostgrePoint(
+    val coordinates: List<Double>,
+    val type: String
 )
 
 
@@ -94,9 +97,13 @@ class MainActivity : ComponentActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.INTERNET), 0)
         }
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_DENIED){
+            != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),1)
         }
+        setContent {
+            GreenBackgroundScreen()
+        }
+        //makeSound()
 
         setContentView(R.layout.activity_main)
         map = findViewById<MapView>(R.id.map)
@@ -108,7 +115,13 @@ class MainActivity : ComponentActivity() {
         //mapController.setCenter(startPoint)
         val locationProvider = GpsMyLocationProvider(this)
         locationOverlay = MyLocationNewOverlay(locationProvider, map)
+        locationOverlay.enableMyLocation()
+
         viewModel = CrisisViewModel()
+
+
+           Log.e("wrfsfd", viewModel.crisises.toString())
+
 
 
         lifecycleScope.launch {
@@ -119,8 +132,12 @@ class MainActivity : ComponentActivity() {
                     val isIntersected = viewModel.fetchNews(locationOverlay.myLocation)
 
                     if (isIntersected){
+                        setContent {
+                            GreenBackgroundScreen()
+                        }
 
                         setContentView(R.layout.activity_main)
+
                         makeSound()
                         viewModel.fetchCrisises()
                         //viewModel.crisises
@@ -164,6 +181,7 @@ class MainActivity : ComponentActivity() {
     fun makeSound(){
         mediaPlayer = MediaPlayer.create(this, R.raw.loudsound) // Ensure you have a sound file in res/raw
         mediaPlayer.isLooping = false // Set to true if you want it to loop
+        mediaPlayer.setVolume(1.0f, 1.0f)
         mediaPlayer.start()
     }
 }

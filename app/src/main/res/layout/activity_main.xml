@@ -1,9 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="vertical" 
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent">
-        <org.osmdroid.views.MapView android:id="@+id/map"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent" />
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+
+            android:background="#E41D37">
+
+                <TextView
+                    android:id="@+id/hrozba"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Hrozba"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+
+                    android:textAlignment="center"
+                    android:textColor="@color/white"
+                    android:padding="16dp" />
+
+                <TextView
+                    android:id="@+id/crisis"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="ÚTĚK TYGRA"
+                    android:textSize="42sp"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:textAlignment="center"
+                    android:padding="16dp" />
+
+                <TextView
+                    android:id="@+id/popis"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Ze ZOO utekl tygr, evakujte se okamžitě z vyznačené oblasti"
+                    android:textSize="24sp"
+                    android:textColor="@color/white"
+                    android:padding="16dp" />
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginVertical="10dp"
+                    android:text="Ukončit"
+                    android:id="@+id/btn">
+                </Button>
+        </LinearLayout>
+
+        <org.osmdroid.views.MapView
+            android:id="@+id/map"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 </LinearLayout>
