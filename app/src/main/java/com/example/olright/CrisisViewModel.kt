@@ -1,6 +1,10 @@
 package com.example.olright
 
+import android.graphics.Paint
 import android.util.Log
+import androidx.annotation.ColorInt
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.jan.supabase.postgrest.from
@@ -14,6 +18,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.overlay.FolderOverlay
+import org.osmdroid.views.overlay.Polygon
 
 
 class CrisisViewModel : ViewModel() {
@@ -27,7 +33,7 @@ class CrisisViewModel : ViewModel() {
         viewModelScope.launch {
             while (true) {
                 fetchCrisises()
-                delay(5000)
+                delay(10000)
             }
         }
     }
@@ -39,6 +45,23 @@ class CrisisViewModel : ViewModel() {
                 println("Collected Crises: $crisisList")
             }
         }
+    }
+
+    fun getPolygonsOverlay(): FolderOverlay{
+        val folderOverlay = FolderOverlay()
+        for (crisis in crisises.value) {
+            val polygon = Polygon()
+            val points = mutableListOf<GeoPoint>()
+            for (point in crisis.geom.coordinates[0]) {
+                points.add(GeoPoint(point[1], point[0]))
+            }
+            polygon.points = points
+            polygon.title = crisis.crisis
+            polygon.fillPaint.color = Color(228,29,55,100).toArgb()
+            polygon.outlinePaint.color = Color(228,29,55,255).toArgb()
+            folderOverlay.add(polygon)
+        }
+        return folderOverlay
     }
 
     fun fetchCrisises() {

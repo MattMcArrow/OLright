@@ -48,6 +48,8 @@ import org.osmdroid.config.Configuration.*
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.FolderOverlay
+import org.osmdroid.views.overlay.Polygon
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 
@@ -89,6 +91,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var map : MapView
     private lateinit var mediaPlayer: MediaPlayer
     private lateinit var locationOverlay: MyLocationNewOverlay
+    private lateinit var polygonsOverlay: FolderOverlay
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,9 +103,7 @@ class MainActivity : ComponentActivity() {
             != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),1)
         }
-        setContent {
-            GreenBackgroundScreen()
-        }
+
         //makeSound()
 
         setContentView(R.layout.activity_main)
@@ -110,52 +111,59 @@ class MainActivity : ComponentActivity() {
         map.setTileSource(TileSourceFactory.MAPNIK)
 
         val mapController = map.controller
-        mapController.setZoom(13)
+        mapController.setZoom(15.0)
         val startPoint = GeoPoint(49.5948, 17.241)
-        //mapController.setCenter(startPoint)
+        mapController.setCenter(startPoint)
         val locationProvider = GpsMyLocationProvider(this)
         locationOverlay = MyLocationNewOverlay(locationProvider, map)
         locationOverlay.enableMyLocation()
+        map.overlays.add(locationOverlay)
 
         viewModel = CrisisViewModel()
 
 
-           Log.e("wrfsfd", viewModel.crisises.toString())
+        Log.e("wrfsfd", viewModel.crisises.toString())
 
 
+        setContent {
+            GreenBackgroundScreen()
+        }
 
         lifecycleScope.launch {
 
             while(true){
                 if (locationOverlay.myLocation != null) {
-                    mapController.setCenter(locationOverlay.myLocation)
                     val isIntersected = viewModel.fetchNews(locationOverlay.myLocation)
 
-                    if (isIntersected){
-                        setContent {
-                            GreenBackgroundScreen()
-                        }
+                    if (isIntersected) {
 
                         setContentView(R.layout.activity_main)
-
                         makeSound()
-                        viewModel.fetchCrisises()
-                        //viewModel.crisises
                     }
+
+                    viewModel.fetchCrisises()
+                    if (::polygonsOverlay.isInitialized) {
+                        map.overlays.remove(polygonsOverlay)
+                    }
+                    polygonsOverlay = viewModel.getPolygonsOverlay()
+                    map.overlays.add(polygonsOverlay)
+
                 }
                 delay(2000)
             }
         }
     }
+
     override fun onResume() {
         super.onResume()
         map.onResume() //needed for compass, my location overlays, v6.0.0 and up
         locationOverlay.enableMyLocation()
-        locationOverlay.enableFollowLocation()
+        //locationOverlay.enableFollowLocation()
     }
 
     override fun onPause() {
         super.onPause()
+
         map.onPause()  //needed for compass, my location overlays, v6.0.0 and up
         locationOverlay.disableMyLocation()
         locationOverlay.disableFollowLocation()
