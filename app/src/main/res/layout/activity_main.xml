@@ -1,61 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#99CC00"
+    android:gravity="center">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/crisislayout"
+       >
 
-<LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
 
-            android:background="#E41D37">
+                android:background="#E41D37">
 
-                <TextView
-                    android:id="@+id/hrozba"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Aktuální hrozba"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:textAlignment="center"
-                    android:textColor="@color/white"
-                    android:padding="16dp"
-                    android:fontFamily="@font/oswald_bold"
-                    android:visibility="visible" />
+                    <TextView
+                        android:id="@+id/hrozba"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Aktuální hrozba"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textAlignment="center"
+                        android:textColor="@color/white"
+                        android:padding="16dp"
+                        android:fontFamily="@font/oswald_bold"
+                        android:visibility="visible" />
 
-                <TextView
-                    android:id="@+id/crisis"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="ÚTĚK TYGRA"
-                    android:textSize="36sp"
-                    android:textColor="@color/white"
-                    android:textStyle="bold"
-                    android:textAlignment="center"
-                    android:padding="8dp"
-                    android:fontFamily="@font/oswald_bold" />
+                    <TextView
+                        android:id="@+id/crisis"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="NAČÍTÁM ..."
+                        android:textSize="36sp"
+                        android:textColor="@color/white"
+                        android:textStyle="bold"
+                        android:textAlignment="center"
+                        android:padding="8dp"
+                        android:fontFamily="@font/oswald_bold" />
 
-                <TextView
-                    android:id="@+id/popis"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Ze ZOO utekl tygr, evakujte se okamžitě z vyznačené oblasti"
-                    android:textSize="22sp"
-                    android:textColor="@color/white"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="8dp"
-                    android:fontFamily="@font/oswald_regular" />
+                    <TextView
+                        android:id="@+id/popis"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Zjišťuji detaily ..."
+                        android:textSize="22sp"
+                        android:textColor="@color/white"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:fontFamily="@font/oswald_regular" />
 
-                <Button
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="16dp"
-                    android:layout_marginVertical="16dp"
-                    android:text="Ukončit upozornění"
-                    android:id="@+id/btn"
-                    android:fontFamily="@font/oswald_regular">
-                </Button>
+                    <Button
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="16dp"
+                        android:layout_marginVertical="16dp"
+                        android:text="Ukončit upozornění"
+                        android:id="@+id/btn"
+                        android:fontFamily="@font/oswald_regular">
+                    </Button>
         </LinearLayout>
 
         <org.osmdroid.views.MapView
@@ -63,4 +70,58 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1" />
-</LinearLayout>
+    </LinearLayout>
+
+
+
+    <LinearLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="10dp"
+    android:id="@+id/greenview">
+
+    <!-- Title Text -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="GPS aktivní"
+        android:textSize="36sp"
+        android:textColor="@android:color/white"
+        android:gravity="center"
+        android:padding="10dp"/>
+
+    <!-- Spacer (you can use margin to simulate a Spacer) -->
+    <Space
+        android:layout_width="16dp"
+        android:layout_height="16dp"/>
+
+    <!-- Subtitle Text -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ŽÁDNÁ HROZBA\nV OKOLÍ"
+        android:textSize="56sp"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:padding="24dp"
+
+        android:textAlignment="center"/>
+
+    <!-- Spacer -->
+    <Space
+        android:layout_width="32dp"
+        android:layout_height="32dp"/>
+
+    <!-- ImageView for PNG -->
+    <ImageView
+        android:id="@+id/sampleImageView"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:src="@drawable/ikona_zelena"
+        android:scaleType="centerCrop"/>
+    </LinearLayout>
+</RelativeLayout>
+

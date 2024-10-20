@@ -22,6 +22,9 @@ import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.preference.PreferenceManager
 import android.util.Log
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -89,9 +92,14 @@ class MainActivity : ComponentActivity() {
     private lateinit var viewModel: CrisisViewModel
     private val REQUEST_PERMISSIONS_REQUEST_CODE = 1
     private lateinit var map : MapView
-    private lateinit var mediaPlayer: MediaPlayer
+    private lateinit var mediaPlayer : MediaPlayer
     private lateinit var locationOverlay: MyLocationNewOverlay
     private lateinit var polygonsOverlay: FolderOverlay
+    private lateinit var greenview: LinearLayout
+    private lateinit var crisisview: LinearLayout
+    private lateinit var btnkill: Button
+    private lateinit var descriptionview: TextView
+    private lateinit var crisisnameview: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,9 +112,28 @@ class MainActivity : ComponentActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),1)
         }
 
+
+
         //makeSound()
+        setContent {
+            GreenBackgroundScreen()
+        }
+
+        mediaPlayer = MediaPlayer.create(this, R.raw.loudsound)
 
         setContentView(R.layout.activity_main)
+        greenview = findViewById(R.id.greenview)
+        crisisview = findViewById(R.id.crisislayout)
+        greenview = findViewById(R.id.greenview)
+        descriptionview = findViewById(R.id.popis)
+        crisisnameview = findViewById(R.id.crisis)
+        btnkill = findViewById(R.id.btn)
+        btnkill.setOnClickListener {
+            stopSound()
+        }
+        crisisview.visibility = android.view.View.INVISIBLE
+
+
         map = findViewById<MapView>(R.id.map)
         map.setTileSource(TileSourceFactory.MAPNIK)
 
@@ -125,21 +152,14 @@ class MainActivity : ComponentActivity() {
         Log.e("wrfsfd", viewModel.crisises.toString())
 
 
-        setContent {
-            GreenBackgroundScreen()
-        }
+
+
 
         lifecycleScope.launch {
-
+            var currpolygon: Crisis? = null
             while(true){
                 if (locationOverlay.myLocation != null) {
                     val isIntersected = viewModel.fetchNews(locationOverlay.myLocation)
-
-                    if (isIntersected) {
-
-                        setContentView(R.layout.activity_main)
-                        makeSound()
-                    }
 
                     viewModel.fetchCrisises()
                     if (::polygonsOverlay.isInitialized) {
@@ -148,8 +168,31 @@ class MainActivity : ComponentActivity() {
                     polygonsOverlay = viewModel.getPolygonsOverlay()
                     map.overlays.add(polygonsOverlay)
 
+                    if (isIntersected != 0 ) {
+                        for (crisis in viewModel.crisises.value) {
+                            if (crisis.id == isIntersected) {
+                                currpolygon = crisis
+                            }
+                            //polygonsOverlay.items
+                        }
+                        if (currpolygon != null) {
+                            descriptionview.setText(currpolygon.description)
+                            crisisnameview.setText(currpolygon.crisis)
+                        }
+                        crisisview.visibility = android.view.View.VISIBLE
+                        greenview.visibility = android.view.View.INVISIBLE
+
+                        makeSound()
+                    }
+                    else{
+                        crisisview.visibility = android.view.View.INVISIBLE
+                        greenview.visibility = android.view.View.VISIBLE
+                    }
+
+
+
                 }
-                delay(2000)
+                delay(5000)
             }
         }
     }
@@ -187,10 +230,14 @@ class MainActivity : ComponentActivity() {
     }
 
     fun makeSound(){
-        mediaPlayer = MediaPlayer.create(this, R.raw.loudsound) // Ensure you have a sound file in res/raw
-        mediaPlayer.isLooping = false // Set to true if you want it to loop
+
+        mediaPlayer.isLooping = true // Set to true if you want it to loop
         mediaPlayer.setVolume(1.0f, 1.0f)
         mediaPlayer.start()
+    }
+
+    fun stopSound(){
+        mediaPlayer.stop()
     }
 }
 

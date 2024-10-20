@@ -47,18 +47,24 @@ class CrisisViewModel : ViewModel() {
         }
     }
 
+    fun makePolygon(crisis: Crisis): Polygon {
+        val polygon = Polygon()
+        val points = mutableListOf<GeoPoint>()
+        for (point in crisis.geom.coordinates[0]) {
+            points.add(GeoPoint(point[1], point[0]))
+        }
+        polygon.points = points
+        polygon.title = crisis.crisis
+        polygon.id = crisis.id.toString()
+        polygon.fillPaint.color = Color(228,29,55,100).toArgb()
+        polygon.outlinePaint.color = Color(228,29,55,255).toArgb()
+        return polygon
+    }
+
     fun getPolygonsOverlay(): FolderOverlay{
         val folderOverlay = FolderOverlay()
         for (crisis in crisises.value) {
-            val polygon = Polygon()
-            val points = mutableListOf<GeoPoint>()
-            for (point in crisis.geom.coordinates[0]) {
-                points.add(GeoPoint(point[1], point[0]))
-            }
-            polygon.points = points
-            polygon.title = crisis.crisis
-            polygon.fillPaint.color = Color(228,29,55,100).toArgb()
-            polygon.outlinePaint.color = Color(228,29,55,255).toArgb()
+            val polygon = makePolygon(crisis)
             folderOverlay.add(polygon)
         }
         return folderOverlay
@@ -77,7 +83,7 @@ class CrisisViewModel : ViewModel() {
     @Serializable
     data class Point (val lat:Double, val lon:Double)
 
-    suspend fun fetchNews(myLocation: GeoPoint): Boolean {
+    suspend fun fetchNews(myLocation: GeoPoint): Int {
         val lat = myLocation.latitude
         val lon = myLocation.longitude
         var point = PostgrePoint(listOf(lon, lat), "Point")
@@ -85,13 +91,13 @@ class CrisisViewModel : ViewModel() {
             // Use async to get the result back
             val result = viewModelScope.async {
                 val p = Point(lat, lon);
-                supabase.postgrest.rpc("is_dangerous_location2", p).decodeAs<Boolean>()
+                supabase.postgrest.rpc("is_dangerous_location3", p).decodeAs<Int>()
             }
             val test = result.await()
             return test
         } catch (e: Exception) {
             Log.e("blabla", "Error fetching data: ${e.message}")
-            return false  // Return a default value on error
+            return 0  // Return a default value on error
         }
     }
 
