@@ -86,16 +86,17 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="GPS aktivní"
-        android:textSize="36sp"
+        android:text="příjem upozornění aktivní"
+        android:textSize="16dp"
         android:textColor="@android:color/white"
         android:gravity="center"
-        android:padding="10dp"/>
+        android:padding="10dp"
+        android:fontFamily="@font/oswald_bold"/>
 
     <!-- Spacer (you can use margin to simulate a Spacer) -->
     <Space
         android:layout_width="16dp"
-        android:layout_height="16dp"/>
+        android:layout_height="40dp"/>
 
     <!-- Subtitle Text -->
     <TextView
@@ -107,13 +108,13 @@
         android:textStyle="bold"
         android:gravity="center"
         android:padding="24dp"
-
+        android:fontFamily="@font/oswald_bold"
         android:textAlignment="center"/>
 
     <!-- Spacer -->
     <Space
         android:layout_width="32dp"
-        android:layout_height="32dp"/>
+        android:layout_height="40dp"/>
 
     <!-- ImageView for PNG -->
     <ImageView
