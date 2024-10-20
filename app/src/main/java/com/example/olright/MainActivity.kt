@@ -100,6 +100,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var btnkill: Button
     private lateinit var descriptionview: TextView
     private lateinit var crisisnameview: TextView
+    private var alertStopped = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -129,6 +130,7 @@ class MainActivity : ComponentActivity() {
         crisisnameview = findViewById(R.id.crisis)
         btnkill = findViewById(R.id.btn)
         btnkill.setOnClickListener {
+            alertStopped = true
             stopSound()
         }
         crisisview.visibility = android.view.View.INVISIBLE
@@ -136,6 +138,7 @@ class MainActivity : ComponentActivity() {
 
         map = findViewById<MapView>(R.id.map)
         map.setTileSource(TileSourceFactory.MAPNIK)
+        map.setMultiTouchControls(true)
 
         val mapController = map.controller
         mapController.setZoom(15.0)
@@ -144,6 +147,7 @@ class MainActivity : ComponentActivity() {
         val locationProvider = GpsMyLocationProvider(this)
         locationOverlay = MyLocationNewOverlay(locationProvider, map)
         locationOverlay.enableMyLocation()
+        //locationOverlay.setPersonIcon(getDrawable(this, R.drawable.ic_baseline_my_location_24))
         map.overlays.add(locationOverlay)
 
         viewModel = CrisisViewModel()
@@ -169,6 +173,14 @@ class MainActivity : ComponentActivity() {
                     map.overlays.add(polygonsOverlay)
 
                     if (isIntersected != 0 ) {
+
+
+                        if(currpolygon == null || currpolygon.id != isIntersected) {
+                            mapController.setCenter(locationOverlay.myLocation)
+                            mapController.setZoom(16.0)
+                            alertStopped = false;
+                        }
+
                         for (crisis in viewModel.crisises.value) {
                             if (crisis.id == isIntersected) {
                                 currpolygon = crisis
@@ -176,8 +188,8 @@ class MainActivity : ComponentActivity() {
                             //polygonsOverlay.items
                         }
                         if (currpolygon != null) {
-                            descriptionview.setText(currpolygon.description)
-                            crisisnameview.setText(currpolygon.crisis)
+                            descriptionview.text = currpolygon.description
+                            crisisnameview.text = currpolygon.crisis
                         }
                         crisisview.visibility = android.view.View.VISIBLE
                         greenview.visibility = android.view.View.INVISIBLE
@@ -185,14 +197,19 @@ class MainActivity : ComponentActivity() {
                         makeSound()
                     }
                     else{
+                        crisisnameview.text = "NAČÍTÁM ..."
+                        descriptionview.text = "Zjišťuji detaily ..."
+                        currpolygon = null
                         crisisview.visibility = android.view.View.INVISIBLE
                         greenview.visibility = android.view.View.VISIBLE
+
+                        stopSound()
                     }
 
 
 
                 }
-                delay(5000)
+                delay(3000)
             }
         }
     }
@@ -230,14 +247,21 @@ class MainActivity : ComponentActivity() {
     }
 
     fun makeSound(){
-
-        mediaPlayer.isLooping = true // Set to true if you want it to loop
-        mediaPlayer.setVolume(1.0f, 1.0f)
-        mediaPlayer.start()
+        if(!alertStopped) {
+            mediaPlayer.reset()
+            mediaPlayer.setDataSource(getResources().openRawResourceFd(R.raw.loudsound))
+            mediaPlayer.prepare()
+            mediaPlayer.isLooping = true // Set to true if you want it to loop
+            mediaPlayer.setVolume(1.0f, 1.0f)
+            mediaPlayer.start()
+        }
     }
 
     fun stopSound(){
-        mediaPlayer.stop()
+        if(mediaPlayer.isPlaying)
+            {
+                mediaPlayer.stop()
+            }
     }
 }
 

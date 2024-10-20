@@ -87,7 +87,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="příjem upozornění aktivní"
-        android:textSize="16dp"
+        android:textSize="28dp"
         android:textColor="@android:color/white"
         android:gravity="center"
         android:padding="10dp"
@@ -96,7 +96,7 @@
     <!-- Spacer (you can use margin to simulate a Spacer) -->
     <Space
         android:layout_width="16dp"
-        android:layout_height="40dp"/>
+        android:layout_height="50dp"/>
 
     <!-- Subtitle Text -->
     <TextView
@@ -114,7 +114,7 @@
     <!-- Spacer -->
     <Space
         android:layout_width="32dp"
-        android:layout_height="40dp"/>
+        android:layout_height="50dp"/>
 
     <!-- ImageView for PNG -->
     <ImageView

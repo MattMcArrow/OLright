@@ -30,22 +30,9 @@ class CrisisViewModel : ViewModel() {
 
     init {
 
-        viewModelScope.launch {
-            while (true) {
-                fetchCrisises()
-                delay(10000)
-            }
-        }
+
     }
 
-    fun collectCrisisData() {
-        CoroutineScope(Dispatchers.Main).launch {
-            crisises.collect { crisisList ->
-
-                println("Collected Crises: $crisisList")
-            }
-        }
-    }
 
     fun makePolygon(crisis: Crisis): Polygon {
         val polygon = Polygon()
